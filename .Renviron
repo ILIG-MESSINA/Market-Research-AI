@@ -1,2 +1,3 @@
 PATH="${RTOOLS40_HOME}\usr\bin;${PATH}"
 KAGGLE_PAT=messinaayissi/51d6372c4fb5d8b03fceb96f6a4c5d33
+GEMINI_API_KEY=AIzaSyClC_zHd0fLbgFqNbJsf2JuFacoDH0BD1g
