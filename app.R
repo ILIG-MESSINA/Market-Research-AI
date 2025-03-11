@@ -11,7 +11,7 @@ library(pdftools)
 library(officer)    
 library(readxl)     
 library(tools)      
-                                                                                                                                                                                                                                                 GEMINI_API_KEY <- 'AIzaSyClC_zHd0fLbgFqNbJsf2JuFacoDH0BD1g'
+
 # 📌 Chargement du thème personnalisé
 custom_theme <- bs_theme(
   version = 5,
@@ -238,3 +238,5 @@ server <- function(input, output, session) {
 
 # 📌 Lancement de l'application
 shinyApp(ui = ui, server = server)
+
+
