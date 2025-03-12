@@ -157,7 +157,7 @@ ui <- navbarPage(
   tabPanel("Web Search", icon = icon(name = "search"),
            sidebarLayout(
              sidebarPanel(width = 4,
-                          textAreaInput("prompt1", "Please write your prompt here:", 
+                          textAreaInput("prompt1", "Please write your prompt here to make a web-search:", 
                                         placeholder = "Enter Your Query", rows = 14),
                           actionButton("submit_web", "Summit Query"),
                           actionButton("clear_text", "Clear Prompt"),  
@@ -172,7 +172,7 @@ ui <- navbarPage(
   tabPanel("Reports Search", icon = icon(name = "folder"),
            sidebarLayout(
              sidebarPanel(width = 4,
-                          textAreaInput("prompt_reports", "Please write your prompt here:", 
+                          textAreaInput("prompt_reports", "Please note that here you search through Market Researches reports:", 
                                         placeholder = "Enter Your Query", rows = 14),
                           actionButton("submit_reports", "Summit Query"),
                           actionButton("clear_text_reports", "Clear Prompt"),  
