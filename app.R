@@ -70,7 +70,7 @@ gemini <- function(prompt,
 
 
 # 📌 Dossier contenant les documents
-folder_path <- "D:/TSET_GEMINI/"
+folder_path <- "www/"
 
 # 📌 Fonction pour extraire et fusionner le texte de plusieurs fichiers dans un dossier
 extract_text_from_folder <- function(folder_path) {
