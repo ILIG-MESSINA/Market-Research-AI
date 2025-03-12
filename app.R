@@ -158,7 +158,7 @@ ui <- navbarPage(
            sidebarLayout(
              sidebarPanel(width = 4,
                           textAreaInput("prompt1", "Please write your prompt here:", 
-                                        placeholder = "Enter Your Query", rows = 18),
+                                        placeholder = "Enter Your Query", rows = 15),
                           actionButton("submit_web", "Summit Query"),
                           actionButton("clear_text", "Clear Prompt"),  
                           actionButton("reset_web", "Clear Answers")  
@@ -173,7 +173,7 @@ ui <- navbarPage(
            sidebarLayout(
              sidebarPanel(width = 4,
                           textAreaInput("prompt_reports", "Please write your prompt here:", 
-                                        placeholder = "Enter Your Query", rows = 18),
+                                        placeholder = "Enter Your Query", rows = 15),
                           actionButton("submit_reports", "Summit Query"),
                           actionButton("clear_text_reports", "Clear Prompt"),  
                           actionButton("reset_reports", "Clear Answers")  
