@@ -149,7 +149,7 @@ gemini_multiple_documents <- function(folder_path, question,
 # 📌 Interface utilisateur (UI)
 ui <- navbarPage(
   input_dark_mode(id = "dark_mode", mode = "light"),
-  title = span("InsightsAI", style = "color: #FFD005; font-size: 28px", 
+  title = span("Market-Research-AI", style = "color: #FFD005; font-size: 28px", 
                img(src = "MTN_NEW_LOGO_1.png", style = "position: absolute; top: 10px; right: 2%;")),
   theme = custom_theme,
   
@@ -172,7 +172,7 @@ ui <- navbarPage(
   tabPanel("Reports Search", icon = icon(name = "folder"),
            sidebarLayout(
              sidebarPanel(width = 4,
-                          textAreaInput("prompt_reports", "Please note that here you search through Market Researches reports:", 
+                          textAreaInput("prompt_reports", "Get Informations from Market Researches reports:", 
                                         placeholder = "Enter Your Query", rows = 14),
                           actionButton("submit_reports", "Summit Query"),
                           actionButton("clear_text_reports", "Clear Prompt"),  
