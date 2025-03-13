@@ -23,49 +23,61 @@ custom_theme <- bs_theme(
   base_font = "Open Sans"
 )
 
+# Initialisation de l'historique de chat global
+chatHistory <- list()
+
 gemini <- function(prompt, 
-                   temperature = 1,          # Contrôle la créativité (plus élevé = plus aléatoire)
-                   max_output_tokens = 1024, # Nombre maximum de tokens dans la réponse
-                   api_key = Sys.getenv("GEMINI_API_KEY"), # Récupération de la clé API depuis l’environnement
-                   model = "gemini-2.0-flash") { # Modèle utilisé (Gemini 2.0 Flash)
+                   temperature = 1,          
+                   max_output_tokens = 1024, 
+                   api_key = Sys.getenv("GEMINI_API_KEY"), 
+                   model = "gemini-2.0-flash") { 
   
-  # Vérification si la clé API est vide
+  # Vérification si la clé API est fournie
   if (nchar(api_key) < 1) { 
-    api_key <- readline("Paste your API key here: ") # Demande la clé API à l'utilisateur
-    Sys.setenv(GEMINI_API_KEY = api_key) # Stocke la clé API dans les variables d'environnement
+    api_key <- readline("Paste your API key here: ") 
+    Sys.setenv(GEMINI_API_KEY = api_key) 
   }
   
-  # Création du chemin du modèle à interroger
+  # Création du chemin du modèle
   model_query <- paste0(model, ":generateContent")
   
-  # Envoi de la requête POST à l'API Gemini
+  # Ajout du message de l'utilisateur à l'historique
+  chatHistory <<- append(chatHistory, list(list(
+    role = 'user', 
+    parts = list(list(text = prompt))
+  )))
+  
+  # Envoi de la requête POST
   response <- POST(
-    url = paste0("https://generativelanguage.googleapis.com/v1beta/models/", model_query), # URL de l'API
-    query = list(key = api_key), # Ajout de la clé API à la requête
-    content_type_json(), # Définit le format de la requête en JSON
-    encode = "json", # Encode les données en JSON
-    body = list( # Contenu du corps de la requête
-      contents = list( # Contenu envoyé à l'IA
-        parts = list( # Partie contenant le texte du prompt
-          list(text = prompt) # Le prompt fourni par l'utilisateur
-        )),
-      generationConfig = list( # Configuration de la génération de texte
-        temperature = temperature, # Niveau de créativité du modèle
-        maxOutputTokens = max_output_tokens # Limite du nombre de tokens
+    url = paste0("https://generativelanguage.googleapis.com/v1beta/models/", model_query),
+    query = list(key = api_key),
+    content_type_json(),
+    encode = "json",
+    body = toJSON(list(
+      contents = chatHistory,
+      generationConfig = list(
+        temperature = temperature,
+        maxOutputTokens = max_output_tokens
       )
-    )
+    ), auto_unbox = TRUE)
   )
   
-  # Vérification de la réponse de l'API pour détecter d'éventuelles erreurs
+  # Vérification des erreurs
   if (response$status_code > 200) {
-    stop(paste("Error - ", content(response)$error$message)) # Stoppe l'exécution et affiche l'erreur
+    chatHistory <<- chatHistory[-length(chatHistory)]  # Suppression du dernier message en cas d'erreur
+    stop(paste("Error - ", content(response)$error$message))
   }
   
-  # Extraction du texte généré par l'IA depuis la réponse JSON
-  candidates <- content(response)$candidates # Récupère la liste des réponses candidates
-  outputs <- unlist(lapply(candidates, function(candidate) candidate$content$parts)) # Extrait les parties du texte
+  # Extraction de la réponse du modèle
+  answer <- content(response)$candidates[[1]]$content$parts[[1]]$text
   
-  return(outputs) # Retourne le texte généré
+  # Ajout de la réponse du modèle à l'historique
+  chatHistory <<- append(chatHistory, list(list(
+    role = 'model', 
+    parts = list(list(text = answer))
+  )))
+  
+  return(answer)
 }
 
 
@@ -104,6 +116,9 @@ extract_text_from_folder <- function(folder_path) {
 }
 
 # 📌 Fonction pour interroger Gemini avec les documents du dossier
+# Initialisation de l'historique des recherches
+searchHistory <- list()
+
 gemini_multiple_documents <- function(folder_path, question,
                                       temperature = 1, 
                                       max_output_tokens = 1024,
@@ -118,34 +133,51 @@ gemini_multiple_documents <- function(folder_path, question,
   # Extraction du texte des fichiers
   documents_text <- extract_text_from_folder(folder_path)
   
-  # Création du prompt basé sur les documents
-  prompt <- paste("Voici des informations extraites de plusieurs documents :\n\n", 
-                  documents_text, 
-                  "\n\nQuestion :", question, 
-                  "\nRépondez uniquement en vous basant sur ces documents.")
+  # Création du message basé sur les documents et la question
+  message <- list(
+    role = "user",
+    parts = list(list(text = paste(
+      "Voici des informations extraites de plusieurs documents :\n\n",
+      documents_text, 
+      "\n\nQuestion :", question, 
+      "\nRépondez uniquement en vous basant sur ces documents."
+    )))
+  )
   
-  # Envoi de la requête à Gemini
+  # Ajout du message à l'historique des recherches
+  searchHistory <<- append(searchHistory, list(message))
+  
+  # Envoi de la requête à Gemini avec l'historique des recherches
   response <- POST(
     url = paste0("https://generativelanguage.googleapis.com/v1beta/models/", model, ":generateContent"),
     query = list(key = api_key),
     content_type_json(),
     encode = "json",
-    body = list(
-      contents = list(parts = list(list(text = prompt))),
-      generationConfig = list(temperature = temperature, maxOutputTokens = max_output_tokens)
-    )
+    body = toJSON(list(
+      contents = searchHistory,  # Envoi de l'historique des recherches
+      generationConfig = list(
+        temperature = temperature, 
+        maxOutputTokens = max_output_tokens
+      )
+    ), auto_unbox = TRUE)
   )
   
   if (response$status_code > 200) {
+    searchHistory <<- searchHistory[-length(searchHistory)]  # Suppression du dernier message en cas d'erreur
     stop(paste("Error - ", content(response)$error$message))
   }
   
-  candidates <- content(response)$candidates
-  outputs <- unlist(lapply(candidates, function(candidate) candidate$content$parts))
+  # Extraction de la réponse
+  answer <- content(response)$candidates[[1]]$content$parts[[1]]$text
   
-  return(outputs)
+  # Ajout de la réponse du modèle à l'historique des recherches
+  searchHistory <<- append(searchHistory, list(list(
+    role = "model",
+    parts = list(list(text = answer))
+  )))
+  
+  return(answer)
 }
-
 # 📌 Interface utilisateur (UI)
 ui <- navbarPage(
   input_dark_mode(id = "dark_mode", mode = "light"),
